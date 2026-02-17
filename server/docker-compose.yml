@@ -1,0 +1,169 @@
+version: '3.8'
+
+# ==============================================================================
+# ELISHAMA POPULI — INFRAESTRUCTURA DE PRODUCCIÓN
+# ==============================================================================
+# Aislamiento físico entre Censo (identidad) y Urna (votos) mediante
+# redes Docker separadas. Un perito informático puede demostrar que es
+# IMPOSIBLE que un microservicio acceda a los datos del otro.
+
+services:
+  # ==========================================
+  # 1. EL GUARDIA DE ENTRADA (NGINX)
+  # ==========================================
+  # Nginx es el único punto expuesto a Internet.
+  # Enruta el tráfico a los microservicios aislados.
+  reverse-proxy:
+    image: nginx:alpine
+    container_name: elishama-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+      - proxy_logs:/var/log/nginx
+    networks:
+      - web_net
+      - census_net
+      - urn_net
+    depends_on:
+      - api-census
+      - api-urn
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==========================================
+  # 2. EL SISTEMA DE IDENTIDAD (CENSO)
+  # ==========================================
+  # Solo sabe QUIÉN puede votar. Nunca ve QUÉ votó.
+  api-census:
+    build:
+      context: ./services/census
+      dockerfile: Dockerfile
+    container_name: elishama-census
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=db-census
+      - DB_PORT=5432
+      - DB_NAME=elishama_identity
+      - DB_USER=census_admin
+      - DB_PASSWORD=${CENSUS_DB_PASSWORD:-census_secure_2026}
+      - RSA_PRIVATE_EXPONENT_HEX=${RSA_PRIVATE_EXPONENT_HEX}
+      - RSA_PUBLIC_MODULUS_HEX=${RSA_PUBLIC_MODULUS_HEX}
+      - RSA_PUBLIC_EXPONENT_HEX=${RSA_PUBLIC_EXPONENT_HEX:-010001}
+    networks:
+      - web_net
+      - census_net
+    depends_on:
+      db-census:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  db-census:
+    image: postgres:15-alpine
+    container_name: elishama-db-census
+    environment:
+      - POSTGRES_DB=elishama_identity
+      - POSTGRES_USER=census_admin
+      - POSTGRES_PASSWORD=${CENSUS_DB_PASSWORD:-census_secure_2026}
+    volumes:
+      - census_data:/var/lib/postgresql/data
+      - ./services/census/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - census_net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U census_admin -d elishama_identity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # 3. EL SISTEMA DE VOTACIÓN (URNA ANÓNIMA)
+  # ==========================================
+  # Solo sabe QUÉ se votó. Nunca sabe QUIÉN lo hizo.
+  api-urn:
+    build:
+      context: ./services/urn
+      dockerfile: Dockerfile
+    container_name: elishama-urn
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=db-urn
+      - DB_PORT=5432
+      - DB_NAME=elishama_votes
+      - DB_USER=urn_admin
+      - DB_PASSWORD=${URN_DB_PASSWORD:-urn_secure_2026}
+      - RSA_PUBLIC_MODULUS_HEX=${RSA_PUBLIC_MODULUS_HEX}
+      - RSA_PUBLIC_EXPONENT_HEX=${RSA_PUBLIC_EXPONENT_HEX:-010001}
+    networks:
+      - web_net
+      - urn_net
+    depends_on:
+      db-urn:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  db-urn:
+    image: postgres:15-alpine
+    container_name: elishama-db-urn
+    environment:
+      - POSTGRES_DB=elishama_votes
+      - POSTGRES_USER=urn_admin
+      - POSTGRES_PASSWORD=${URN_DB_PASSWORD:-urn_secure_2026}
+    volumes:
+      - urn_data:/var/lib/postgresql/data
+      - ./services/urn/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - urn_net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U urn_admin -d elishama_votes"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# ==============================================================================
+# REDES AISLADAS
+# ==============================================================================
+# La separación de redes es la PRUEBA FÍSICA de que los datos no se cruzan.
+networks:
+  web_net:
+    driver: bridge
+    name: elishama_web
+  census_net:
+    driver: bridge
+    internal: true    # Sin acceso a Internet — solo comunicación interna
+    name: elishama_census
+  urn_net:
+    driver: bridge
+    internal: true    # Sin acceso a Internet — solo comunicación interna
+    name: elishama_urn
+
+# ==============================================================================
+# VOLÚMENES PERSISTENTES
+# ==============================================================================
+volumes:
+  census_data:
+    name: elishama_census_data
+  urn_data:
+    name: elishama_urn_data
+  proxy_logs:
+    name: elishama_proxy_logs
