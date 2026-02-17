@@ -1,5 +1,5 @@
 {
-  "packageId": "com.elishama.populi",
+  "packageId": "com.elishamapopuli.app",
   "name": "EliShama Populi",
   "launcherName": "EliShama",
   "display": "standalone",
@@ -18,8 +18,8 @@
   "appVersion": "2.0.0",
   "appVersionCode": 2,
   "signingKey": {
-    "path": "./android.keystore",
-    "alias": "android"
+    "path": "./elishama.keystore",
+    "alias": "elishama_alias"
   },
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://elishama-populi.netlify.app/manifest.webmanifest",

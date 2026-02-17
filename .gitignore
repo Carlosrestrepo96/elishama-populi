@@ -1,0 +1,55 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencias
+node_modules/
+.pnp
+.pnp.js
+
+# Producción
+dist
+dist-ssr
+build/
+
+# Variables de entorno y secretos (VITAL)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
+*.env
+
+# Criptografía y Seguridad
+*.keystore
+*.jks
+certs/
+!.well-known/
+keystore_credentials.txt
+keystore_base64.txt
+fingerprint.txt
+sha256.txt
+auth.txt
+
+# Docker y Base de Datos (Local)
+census_data/
+urn_data/
+proxy_logs/
+.docker-temp/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
