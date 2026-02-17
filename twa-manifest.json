@@ -1,0 +1,71 @@
+{
+  "packageId": "com.elishama.populi",
+  "name": "EliShama Populi",
+  "launcherName": "EliShama",
+  "display": "standalone",
+  "orientation": "portrait",
+  "themeColor": "#082f49",
+  "navigationColor": "#082f49",
+  "navigationColorDark": "#082f49",
+  "navigationDividerColor": "#082f49",
+  "navigationDividerColorDark": "#082f49",
+  "backgroundColor": "#082f49",
+  "startUrl": "/",
+  "iconUrl": "https://elishama-populi.netlify.app/pwa-512x512.png",
+  "maskableIconUrl": "https://elishama-populi.netlify.app/pwa-512x512.png",
+  "monochromeIconUrl": "https://elishama-populi.netlify.app/pwa-512x512.png",
+  "splashScreenFadeOutDuration": 300,
+  "appVersion": "2.0.0",
+  "appVersionCode": 2,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://elishama-populi.netlify.app/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "enableNotifications": false,
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "features": {
+    "locationDelegation": {
+      "enabled": false
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "host": "elishama-populi.netlify.app",
+  "shortcuts": [
+    {
+      "name": "Votar",
+      "short_name": "Voto",
+      "url": "/votar",
+      "icons": [
+        {
+          "src": "https://elishama-populi.netlify.app/pwa-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Panel de Seguridad",
+      "short_name": "Seguridad",
+      "url": "/seguridad",
+      "icons": [
+        {
+          "src": "https://elishama-populi.netlify.app/pwa-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "imageShortcutIcon": true,
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [
+    2
+  ]
+}
