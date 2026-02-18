@@ -1,15 +1,15 @@
-name: Build Android AAB
-
-on:
-  push:
-    branches: [ master ]
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    
-    steps:
+- name: 🚀 Build APK and AAB
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          # ¡AQUÍ ESTÁ LA MAGIA! Cambiamos "n" por "y". 
+          # Esto obliga al servidor a crear los archivos de Android antes de compilar.
+          echo "y" | bubblewrap build \
+            --skipPwaValidation \
+            --keyStore ./elishama.keystore \
+            --alias elishama_alias \
+            --verbose
       - name: 📦 Checkout repository
         uses: actions/checkout@v4
       
