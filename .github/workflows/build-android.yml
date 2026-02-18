@@ -53,7 +53,7 @@ jobs:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          yes | bubblewrap update
+          yes | bubblewrap update --skipVersionUpgrade
 
       - name: Build AAB
         env:
