@@ -27,6 +27,24 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
       
+      - name: Install dependencies and build PWA
+        run: |
+          npm ci
+          npm run build
+          echo "=== Verificar archivos generados ==="
+          ls -la dist/
+          ls -la dist/manifest.webmanifest
+          ls -la dist/pwa-512x512.png
+      
+      - name: Start local server for manifest
+        run: |
+          npx -y serve dist -l 8080 &
+          sleep 3
+          echo "=== Verificar servidor local ==="
+          curl -s http://localhost:8080/manifest.webmanifest | head -c 200
+          echo ""
+          curl -sI http://localhost:8080/pwa-512x512.png | head -5
+
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
       
@@ -43,6 +61,14 @@ jobs:
         run: |
           keytool -list -keystore elishama.keystore -storepass "$KEYSTORE_PASSWORD" || echo "Keystore verification failed"
       
+      - name: Update twa-manifest for local server
+        run: |
+          sed -i 's|https://raw.githubusercontent.com/Carlosrestrepo96/elishama-populi/master/public/pwa-512x512.png|http://localhost:8080/pwa-512x512.png|g' twa-manifest.json
+          sed -i 's|https://elishama-populi.netlify.app/manifest.webmanifest|http://localhost:8080/manifest.webmanifest|g' twa-manifest.json
+          sed -i 's|https://elishama-populi.netlify.app/pwa-512x512.png|http://localhost:8080/pwa-512x512.png|g' twa-manifest.json
+          echo "=== twa-manifest.json actualizado ==="
+          cat twa-manifest.json
+
       - name: Configure Bubblewrap
         run: |
           mkdir -p "$HOME/.bubblewrap"
