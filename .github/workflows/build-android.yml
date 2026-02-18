@@ -40,60 +40,17 @@ jobs:
         run: |
           mkdir -p "$HOME/.bubblewrap"
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > "$HOME/.bubblewrap/config.json"
-          cat "$HOME/.bubblewrap/config.json"
-      
-      - name: Install expect
-        run: sudo apt-get install -y expect
       
       - name: Build AAB
         env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          expect <<'EXPECT_EOF'
-          set timeout 300
-          spawn bubblewrap build --skipPwaValidation --signingKeyPath ./elishama.keystore --signingKeyAlias elishama_alias
-          
-          while {1} {
-            expect {
-              -re "\\(y/n\\)" {
-                send "n\r"
-              }
-              "Key Store:" {
-                send "$::env(KEYSTORE_PASSWORD)\r"
-                break
-              }
-              timeout {
-                puts "Timeout waiting for prompt"
-                exit 1
-              }
-            }
-          }
-          
-          expect {
-            "Password for the Key:" {
-              send "$::env(KEY_PASSWORD)\r"
-            }
-            timeout {
-              puts "Timeout waiting for key password prompt"
-              exit 1
-            }
-          }
-          
-          expect eof
-          lassign [wait] pid spawnid os_error_flag value
-          exit $value
-          EXPECT_EOF
+          # Usamos 'yes n' para responder automáticamente 'no' a regenerar el proyecto
+          yes n | bubblewrap build --skipPwaValidation --signingKeyPath ./elishama.keystore --signingKeyAlias elishama_alias
       
-      - name: List output files
-        if: always()
-        run: |
-          echo "=== Files in current directory ==="
-          ls -la *.aab *.apk 2>/dev/null || echo "No AAB/APK files found"
-          echo "=== All files ==="
-          ls -la
-      
-      - name: Upload AAB
+      - name: Upload Artifacts
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-release-bundle
@@ -101,4 +58,3 @@ jobs:
             *.aab
             *.apk
           retention-days: 30
-          if-no-files-found: warn
