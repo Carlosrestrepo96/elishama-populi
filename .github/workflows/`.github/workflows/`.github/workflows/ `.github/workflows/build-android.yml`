@@ -48,14 +48,19 @@ jobs:
           mkdir -p "$HOME/.bubblewrap"
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > "$HOME/.bubblewrap/config.json"
       
+      - name: Generate Android Project
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          yes | bubblewrap update
+
       - name: Build AAB
         env:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          # Use 'yes n' to answer 'no' to regeneration prompts
-          # Added --debug if available (actually Bubblewrap doesn't have it, but we'll try to see more output)
-          yes | bubblewrap build --skipPwaValidation
+          bubblewrap build --skipPwaValidation
       
       - name: List output files
         if: always()
