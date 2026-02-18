@@ -42,14 +42,51 @@ jobs:
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > "$HOME/.bubblewrap/config.json"
           cat "$HOME/.bubblewrap/config.json"
       
+      - name: Install expect
+        run: sudo apt-get install -y expect
+      
       - name: Build AAB
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          printf 'n\nn\nn\nn\nn\n%s\n%s\n' "$KEYSTORE_PASSWORD" "$KEY_PASSWORD" | bubblewrap build --skipPwaValidation --signingKeyPath ./elishama.keystore --signingKeyAlias elishama_alias
+          expect <<'EXPECT_EOF'
+          set timeout 300
+          spawn bubblewrap build --skipPwaValidation --signingKeyPath ./elishama.keystore --signingKeyAlias elishama_alias
+          
+          while {1} {
+            expect {
+              -re "\\(y/n\\)" {
+                send "n\r"
+              }
+              "Key Store:" {
+                send "$::env(KEYSTORE_PASSWORD)\r"
+                break
+              }
+              timeout {
+                puts "Timeout waiting for prompt"
+                exit 1
+              }
+            }
+          }
+          
+          expect {
+            "Password for the Key:" {
+              send "$::env(KEY_PASSWORD)\r"
+            }
+            timeout {
+              puts "Timeout waiting for key password prompt"
+              exit 1
+            }
+          }
+          
+          expect eof
+          lassign [wait] pid spawnid os_error_flag value
+          exit $value
+          EXPECT_EOF
       
       - name: List output files
+        if: always()
         run: |
           echo "=== Files in current directory ==="
           ls -la *.aab *.apk 2>/dev/null || echo "No AAB/APK files found"
