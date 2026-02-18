@@ -44,6 +44,7 @@
       "name": "Votar",
       "short_name": "Voto",
       "url": "/votar",
+      "chosenIconUrl": "https://elishama-populi.netlify.app/pwa-192x192.png",
       "icons": [
         {
           "src": "https://elishama-populi.netlify.app/pwa-192x192.png",
@@ -55,6 +56,7 @@
       "name": "Panel de Seguridad",
       "short_name": "Seguridad",
       "url": "/seguridad",
+      "chosenIconUrl": "https://elishama-populi.netlify.app/pwa-192x192.png",
       "icons": [
         {
           "src": "https://elishama-populi.netlify.app/pwa-192x192.png",
