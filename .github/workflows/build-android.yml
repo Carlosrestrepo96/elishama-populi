@@ -47,7 +47,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          echo "$KEYSTORE_PASSWORD" | bubblewrap build --skipPwaValidation --signingKeyPath ./elishama.keystore --signingKeyAlias elishama_alias
+          printf 'n\nn\nn\nn\nn\n%s\n%s\n' "$KEYSTORE_PASSWORD" "$KEY_PASSWORD" | bubblewrap build --skipPwaValidation --signingKeyPath ./elishama.keystore --signingKeyAlias elishama_alias
       
       - name: List output files
         run: |
