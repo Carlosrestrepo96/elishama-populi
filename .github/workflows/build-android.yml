@@ -36,18 +36,32 @@ jobs:
         run: |
           echo "$KEYSTORE_BASE64" | base64 -d > elishama.keystore
       
+      - name: Configure Bubblewrap
+        run: |
+          mkdir -p "$HOME/.bubblewrap"
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > "$HOME/.bubblewrap/config.json"
+          cat "$HOME/.bubblewrap/config.json"
+      
       - name: Build AAB
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          bubblewrap build --skipPwaValidation
+          echo "$KEYSTORE_PASSWORD" | bubblewrap build --skipPwaValidation --signingKeyPath ./elishama.keystore --signingKeyAlias elishama_alias
+      
+      - name: List output files
+        run: |
+          echo "=== Files in current directory ==="
+          ls -la *.aab *.apk 2>/dev/null || echo "No AAB/APK files found"
+          echo "=== All files ==="
+          ls -la
       
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
           name: app-release-bundle
           path: |
-            app-release-bundle.aab
-            app-release.apk
+            *.aab
+            *.apk
           retention-days: 30
+          if-no-files-found: warn
