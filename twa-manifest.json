@@ -39,32 +39,6 @@
     "enabled": false
   },
   "host": "elishama-populi.netlify.app",
-  "shortcuts": [
-    {
-      "name": "Votar",
-      "short_name": "Voto",
-      "url": "/votar",
-      "chosenIconUrl": "https://elishama-populi.netlify.app/pwa-192x192.png",
-      "icons": [
-        {
-          "src": "https://elishama-populi.netlify.app/pwa-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Panel de Seguridad",
-      "short_name": "Seguridad",
-      "url": "/seguridad",
-      "chosenIconUrl": "https://elishama-populi.netlify.app/pwa-192x192.png",
-      "icons": [
-        {
-          "src": "https://elishama-populi.netlify.app/pwa-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    }
-  ],
   "imageShortcutIcon": true,
   "additionalTrustedOrigins": [],
   "retainedBundles": [
