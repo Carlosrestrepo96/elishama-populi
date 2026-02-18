@@ -35,31 +35,47 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           echo "$KEYSTORE_BASE64" | base64 -d > elishama.keystore
+          ls -la elishama.keystore
       
-      - name: Build AAB
+      - name: Verify Keystore
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          keytool -list -keystore elishama.keystore -storepass "$KEYSTORE_PASSWORD" || echo "Keystore verification failed"
+      
+      - name: Configure Bubblewrap
+        run: |
+          mkdir -p "$HOME/.bubblewrap"
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > "$HOME/.bubblewrap/config.json"
+      
+      - name: Generate Android Project
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          yes | bubblewrap update
+
+      - name: Build AAB
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           bubblewrap build --skipPwaValidation
       
-      - name: Upload AAB
+      - name: List output files
+        if: always()
+        run: |
+          echo "=== Files in current directory ==="
+          ls -la *.aab *.apk 2>/dev/null || echo "No AAB/APK files found"
+          echo "=== All files ==="
+          ls -la
+      
+      - name: Upload Artifacts
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-release-bundle
           path: |
-            app-release-bundle.aab
-            app-release.apk
+            *.aab
+            *.apk
           retention-days: 30
-      
-      - name: Create Release
-        if: github.ref == 'refs/heads/master'
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ github.run_number }}
-          name: Release v${{ github.run_number }}
-          files: |
-            app-release-bundle.aab
-            app-release.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
